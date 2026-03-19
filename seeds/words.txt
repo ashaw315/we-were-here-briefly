@@ -1,0 +1,50 @@
+elevator
+fog
+receipt
+Tuesday
+calcium
+corridor
+municipal
+hinge
+membrane
+socket
+fluorescent
+adjacent
+loophole
+residue
+threshold
+voicemail
+checkout
+permission
+lunchbreak
+expired
+forwarded
+holding
+offline
+pending
+returned
+forgotten
+saved
+unsent
+buffering
+logged
+parking
+thermostat
+clipboard
+dial tone
+layover
+footnote
+windshield
+waiting room
+baggage claim
+crosswalk
+timestamp
+carbon copy
+placeholder
+outgoing
+handwriting
+condensation
+afternoon
+departure
+overdue
+lint

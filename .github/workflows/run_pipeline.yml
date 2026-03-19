@@ -1,0 +1,39 @@
+name: we were here, briefly
+
+on:
+  schedule:
+    # Runs at midnight UTC every day
+    - cron: "0 0 * * *"
+  # Allows manual trigger from the GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+        run: python main.py
+
+      - name: Commit and push output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output/
+          # --allow-empty in case the pipeline failed and produced no new files
+          git commit -m "we were here, briefly: $(date -u +%Y-%m-%d)" || echo "Nothing to commit"
+          git push
