@@ -171,7 +171,7 @@ def scrape_flickr_images(word, count=5):
             continue
         # Flickr uses //live.staticflickr.com/ for photo URLs
         urls = re.findall(
-            r'(https?://live\.staticflickr\.com/[^"\'\\]+\.(?:jpg|jpeg|png))',
+            r'((?:https?:)?//live\.staticflickr\.com/[^"\'\\]+\.(?:jpg|jpeg|png))',
             script.string,
         )
         for found_url in urls:
@@ -183,11 +183,15 @@ def scrape_flickr_images(word, count=5):
         if len(image_urls) >= count:
             break
 
-    # Also check <img> tags directly
+    # Also check <img> tags directly.
+    # Flickr serves most image src as protocol-relative (//live.staticflickr...)
+    # so we check for the domain and prepend https: if needed.
     if len(image_urls) < count:
         for img in soup.find_all("img"):
             src = img.get("src", "")
-            if "staticflickr.com" in src and src.startswith("http"):
+            if "live.staticflickr.com" in src:
+                if src.startswith("//"):
+                    src = "https:" + src
                 if src not in image_urls:
                     image_urls.append(src)
                 if len(image_urls) >= count:

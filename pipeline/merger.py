@@ -163,18 +163,20 @@ def merge(image_vibe, text_synthesis):
     is always present in the user prompt — style only shapes what
     Claude does with it.
 
-    Returns a composite prompt string (1-2 sentences).
+    Returns a tuple of (composite_prompt, style_mode_name).
+    The style_mode_name is a string like "ABSTRACT" or "LIMINAL"
+    that gets stored in the database for the admin page.
     """
     # Handle cases where one or both tracks are empty.
     # If we only have one track, we can still produce something.
     if not image_vibe and not text_synthesis:
         print("  Nothing to merge — both tracks empty")
-        return ""
+        return ("", None)
 
     if not config.ANTHROPIC_API_KEY:
         print("  No ANTHROPIC_API_KEY — skipping merge")
         # Return whatever we have as a fallback
-        return text_synthesis or image_vibe or ""
+        return (text_synthesis or image_vibe or "", None)
 
     client = Anthropic(api_key=config.ANTHROPIC_API_KEY)
 
@@ -213,7 +215,7 @@ def merge(image_vibe, text_synthesis):
     result = response.content[0].text.strip()
     print(f"  Composite prompt: {result}")
 
-    return result
+    return (result, style["name"])
 
 
 # Quick test when running directly

@@ -2,5 +2,8 @@
   "outputDirectory": "public",
   "github": {
     "silent": true
-  }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" }
+  ]
 }

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archive — We Were Here, Briefly</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: "Courier New", Courier, monospace;
+      min-height: 100vh;
+    }
+
+    /* ── Password Gate ── */
+    #auth-gate {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      z-index: 100;
+    }
+    #auth-gate.hidden { display: none; }
+
+    #auth-form {
+      text-align: center;
+    }
+    #auth-form h1 {
+      font-size: 0.75rem;
+      font-weight: normal;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 1.5rem;
+    }
+    #auth-form input {
+      background: #111;
+      border: 1px solid #333;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.85rem;
+      padding: 0.6rem 1rem;
+      width: 200px;
+      text-align: center;
+      outline: none;
+    }
+    #auth-form input:focus { border-color: #555; }
+    #auth-form .error {
+      font-size: 0.65rem;
+      color: #ff4444;
+      margin-top: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    #auth-form .error.visible { opacity: 1; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+    .shake { animation: shake 0.3s ease; }
+
+    /* ── Header ── */
+    header {
+      padding: 2rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+    }
+    header h1 {
+      font-size: 0.75rem;
+      font-weight: normal;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.5);
+    }
+    header a {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.3);
+      text-decoration: none;
+    }
+    header a:hover { color: rgba(255,255,255,0.6); }
+
+    /* ── Grid ── */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      padding: 0 2rem 2rem;
+    }
+    @media (max-width: 900px) {
+      #grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 550px) {
+      #grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: #111;
+      border: 1px solid #222;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: #444; }
+
+    .card video {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      background: #000;
+    }
+    .card-info {
+      padding: 0.75rem;
+    }
+    .card-meta {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.05em;
+      margin-bottom: 0.3rem;
+    }
+    .card-sentence {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.4;
+    }
+
+    /* ── Modal ── */
+    #modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 2rem;
+    }
+    #modal.open { display: flex; }
+
+    #modal-content {
+      max-width: 900px;
+      width: 100%;
+    }
+    #modal-content video {
+      width: 100%;
+      display: block;
+      margin-bottom: 1rem;
+    }
+    #modal-meta {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    #modal-sentence {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+    .style-tag {
+      display: inline-block;
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 0.15rem 0.4rem;
+      letter-spacing: 0.08em;
+    }
+
+    #empty-state {
+      padding: 4rem 2rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Password Gate -->
+  <div id="auth-gate">
+    <div id="auth-form">
+      <h1>WE WERE HERE, BRIEFLY</h1>
+      <input type="password" id="password" placeholder="password" autofocus>
+      <div class="error" id="auth-error">incorrect</div>
+    </div>
+  </div>
+
+  <!-- Main Content (hidden until auth) -->
+  <div id="app" style="display:none">
+    <header>
+      <h1>We Were Here, Briefly &mdash; Archive</h1>
+      <a href="index.html">&larr; back</a>
+    </header>
+    <div id="grid"></div>
+    <div id="empty-state" style="display:none">no runs yet</div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal">
+    <div id="modal-content">
+      <video id="modal-video" autoplay muted loop controls></video>
+      <div id="modal-meta"></div>
+      <div id="modal-sentence"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var ADMIN_PASSWORD = "briefly";
+
+      var gate = document.getElementById("auth-gate");
+      var app = document.getElementById("app");
+      var passwordInput = document.getElementById("password");
+      var authError = document.getElementById("auth-error");
+      var grid = document.getElementById("grid");
+      var emptyState = document.getElementById("empty-state");
+      var modal = document.getElementById("modal");
+      var modalVideo = document.getElementById("modal-video");
+      var modalMeta = document.getElementById("modal-meta");
+      var modalSentence = document.getElementById("modal-sentence");
+
+      // ── Auth ──
+      // Check sessionStorage first — persists until tab is closed
+      if (sessionStorage.getItem("admin_auth") === "true") {
+        gate.classList.add("hidden");
+        app.style.display = "block";
+        loadRuns();
+      }
+
+      passwordInput.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter") return;
+
+        if (passwordInput.value === ADMIN_PASSWORD) {
+          sessionStorage.setItem("admin_auth", "true");
+          gate.classList.add("hidden");
+          app.style.display = "block";
+          loadRuns();
+        } else {
+          // Wrong password — shake + show error
+          authError.classList.add("visible");
+          passwordInput.classList.add("shake");
+          passwordInput.value = "";
+          setTimeout(function () {
+            passwordInput.classList.remove("shake");
+          }, 300);
+          setTimeout(function () {
+            authError.classList.remove("visible");
+          }, 2000);
+        }
+      });
+
+      // ── Load Runs ──
+      function loadRuns() {
+        fetch("/api/runs")
+          .then(function (resp) {
+            if (!resp.ok) throw new Error("API returned " + resp.status);
+            return resp.json();
+          })
+          .then(function (runs) {
+            renderGrid(runs);
+          })
+          .catch(function () {
+            // Fall back to local log.json
+            fetch("../output/log.json")
+              .then(function (resp) { return resp.json(); })
+              .then(function (data) {
+                // Convert legacy log.json format to match API format
+                var runs = data
+                  .filter(function (e) { return e.video_url || e.video; })
+                  .reverse()
+                  .map(function (e) {
+                    return {
+                      date: e.date,
+                      seed: e.seed,
+                      sentence: e.sentence,
+                      video_url: e.video_url || ("../output/" + e.video),
+                      style_mode: e.style_mode || null,
+                    };
+                  });
+                renderGrid(runs);
+              })
+              .catch(function () {
+                emptyState.style.display = "block";
+              });
+          });
+      }
+
+      // ── Render Grid ──
+      function renderGrid(runs) {
+        if (!runs || runs.length === 0) {
+          emptyState.style.display = "block";
+          return;
+        }
+
+        grid.innerHTML = "";
+        runs.forEach(function (run) {
+          var card = document.createElement("div");
+          card.className = "card";
+
+          var videoSrc = run.video_url || "";
+          var truncated = (run.sentence || "").slice(0, 100);
+          if ((run.sentence || "").length > 100) truncated += "...";
+
+          card.innerHTML =
+            '<video preload="metadata" muted src="' + videoSrc + '"></video>' +
+            '<div class="card-info">' +
+            '  <div class="card-meta">' + (run.date || "") + " / " + (run.seed || "") + "</div>" +
+            '  <div class="card-sentence">' + truncated + "</div>" +
+            "</div>";
+
+          card.addEventListener("click", function () {
+            openModal(run);
+          });
+
+          grid.appendChild(card);
+        });
+      }
+
+      // ── Modal ──
+      function openModal(run) {
+        modalVideo.src = run.video_url || "";
+        modalMeta.textContent = (run.date || "") + " / " + (run.seed || "");
+        modalSentence.textContent = run.sentence || "";
+
+        // Add style mode tag if present
+        var existing = document.querySelector("#modal-content .style-tag");
+        if (existing) existing.remove();
+        if (run.style_mode) {
+          var tag = document.createElement("span");
+          tag.className = "style-tag";
+          tag.textContent = run.style_mode;
+          document.getElementById("modal-content").appendChild(tag);
+        }
+
+        modal.classList.add("open");
+        modalVideo.play().catch(function () {});
+      }
+
+      function closeModal() {
+        modal.classList.remove("open");
+        modalVideo.pause();
+        modalVideo.src = "";
+      }
+
+      // Close on backdrop click
+      modal.addEventListener("click", function (e) {
+        if (e.target === modal) closeModal();
+      });
+
+      // Close on ESC
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") closeModal();
+      });
+    })();
+  </script>
+</body>
+</html>

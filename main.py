@@ -10,14 +10,17 @@ Pipeline:
   3. TRACK B: Scrape text for the same word → 3x telephone game via Claude
   4. Merge both tracks into one surreal composite sentence
   5. Kling 1.6 generates a 5-second video via fal.ai
-  6. Save to output/videos/, update output/log.json
-  7. Clean up temp files
+  6. Upload video to R2, save metadata to Postgres + log.json
+  7. Run datamosh on all videos, upload result to R2
+  8. Clean up temp files
 """
 
 import json
 import os
 import random
 import shutil
+import subprocess
+import sys
 from datetime import datetime, timezone
 
 import config
@@ -27,6 +30,8 @@ from pipeline.image_analyzer import analyze_images
 from pipeline.text_synthesizer import synthesize_text
 from pipeline.merger import merge
 from generator.video_gen import generate_video
+from uploader.r2_upload import upload_video, upload_datamosh
+from db.database import init_db, insert_run, update_datamosh_url
 
 
 # Temp directory used by image_scraper for downloads
@@ -68,35 +73,31 @@ def run_stage(name, fn):
         return None
 
 
-def save_log_entry(seed_word, sentence, video_filename, date_str):
+def save_log_entry(seed_word, sentence, video_url, date_str, style_mode=None):
     """
-    Append a new entry to output/log.json.
+    Append a new entry to output/log.json (local backup).
 
-    json.load() reads JSON from a file into Python dicts/lists.
-    json.dump() writes Python objects back out as JSON.
+    This is kept as a fallback and debugging aid even though
+    Postgres is the source of truth. The video field now stores
+    either an R2 URL or a local path depending on configuration.
     """
-    # os.makedirs with exist_ok=True is like `mkdir -p` — creates
-    # the directory and all parents, no error if it already exists.
     os.makedirs(config.OUTPUT_DIR, exist_ok=True)
 
-    # Load existing log or start fresh
     if os.path.exists(config.OUTPUT_LOG):
         with open(config.OUTPUT_LOG, "r") as f:
             log = json.load(f)
     else:
         log = []
 
-    # Video path is relative — the frontend uses this to build
-    # the <video> src. "videos/2026-03-18.mp4" resolves from output/.
     log.append({
         "date": date_str,
         "seed": seed_word,
         "sentence": sentence,
-        "video": f"videos/{video_filename}" if video_filename else None,
+        "video_url": video_url,
+        "style_mode": style_mode,
     })
 
     with open(config.OUTPUT_LOG, "w") as f:
-        # indent=2 pretty-prints the JSON (like JSON.stringify(obj, null, 2))
         json.dump(log, f, indent=2)
 
 
@@ -123,6 +124,11 @@ def main():
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     print(f"\nDate: {today}")
 
+    # --- Initialize database ---
+    # Creates the runs table if it doesn't exist.
+    # If Postgres isn't configured, this prints a message and continues.
+    run_stage("Init database", init_db)
+
     # --- Pick a seed word ---
     # Both tracks use the same word so they're thematically linked
     seed_word = run_stage("Pick seed word", pick_seed_word)
@@ -134,9 +140,6 @@ def main():
     # --- TRACK A: Scrape images → Claude Vision ---
     images = run_stage(
         "Scrape images",
-        # lambda creates an anonymous function (like arrow functions in JS).
-        # We need it here because scrape_images() takes an argument,
-        # but run_stage() expects a zero-argument callable.
         lambda: scrape_images(seed_word)
     )
 
@@ -146,7 +149,6 @@ def main():
     )
 
     # --- TRACK B: Scrape text → 3x telephone game ---
-    # Pass the same seed_word so both tracks share a theme
     raw_text = run_stage(
         "Scrape text",
         lambda: scrape_text(seed_word)
@@ -158,10 +160,18 @@ def main():
     )
 
     # --- Merge both tracks ---
-    sentence = run_stage(
+    # merge() returns (sentence, style_mode_name) tuple
+    merge_result = run_stage(
         "Merge tracks",
         lambda: merge(image_vibe or "", synthesized or "")
     )
+
+    # Unpack the merge result — it's a tuple of (sentence, style_mode)
+    if merge_result and isinstance(merge_result, tuple):
+        sentence, style_mode = merge_result
+    else:
+        sentence = merge_result or ""
+        style_mode = None
 
     # --- Generate video ---
     video_filename = f"{today}.mp4"
@@ -175,12 +185,47 @@ def main():
         lambda: generate_video(sentence or "", video_path)
     )
 
-    # --- Save log entry ---
-    # Only record the video filename if generation succeeded
-    final_video = video_filename if generated else None
-    run_stage(
-        "Save log",
-        lambda: save_log_entry(seed_word, sentence or "", final_video, today)
+    # --- Upload to R2 + save metadata ---
+    video_url = None
+    run_id = None
+
+    if generated and os.path.exists(video_path):
+        # Try uploading to R2 — returns public URL or None
+        video_url = run_stage(
+            "Upload video to R2",
+            lambda: upload_video(video_path, video_filename)
+        )
+
+        # Insert into Postgres — returns row id or None
+        run_id = run_stage(
+            "Save to database",
+            lambda: insert_run(today, seed_word, sentence or "",
+                               video_url, style_mode)
+        )
+
+        # Always write to log.json as local backup.
+        # Store R2 URL if available, otherwise local path.
+        log_video = video_url or f"videos/{video_filename}"
+        run_stage(
+            "Save log backup",
+            lambda: save_log_entry(seed_word, sentence or "",
+                                   log_video, today, style_mode)
+        )
+
+        # Delete local video after successful R2 upload
+        if video_url:
+            os.remove(video_path)
+            print(f"  Deleted local file: {video_path}")
+    else:
+        print("\n  Skipping upload/log — no video file on disk")
+
+    # --- Generate datamosh ---
+    datamosh_url = run_stage(
+        "Datamosh",
+        lambda: subprocess.run(
+            [sys.executable, os.path.join(config.BASE_DIR, "datamosh.py")],
+            check=True
+        )
     )
 
     # --- Clean up temp files ---
