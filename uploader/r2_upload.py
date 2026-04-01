@@ -48,6 +48,32 @@ def _get_client():
     )
 
 
+def get_unique_filename(filename):
+    """
+    Check R2 for existing keys and return a unique filename.
+
+    If 2026-04-01.mp4 exists, tries 2026-04-01-1.mp4, 2026-04-01-2.mp4, etc.
+    Returns the original filename if R2 isn't configured.
+    """
+    client = _get_client()
+    if not client:
+        return filename
+
+    base, ext = os.path.splitext(filename)
+    candidate = filename
+    counter = 1
+
+    while True:
+        try:
+            client.head_object(Bucket=config.R2_BUCKET_NAME, Key=candidate)
+            # Key exists — try next suffix
+            candidate = f"{base}-{counter}{ext}"
+            counter += 1
+        except client.exceptions.ClientError:
+            # Key doesn't exist — this one is free
+            return candidate
+
+
 def upload_video(local_path, filename):
     """
     Upload a video file to R2 and return its public URL.

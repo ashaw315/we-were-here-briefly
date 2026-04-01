@@ -30,7 +30,7 @@ from pipeline.image_analyzer import analyze_images
 from pipeline.text_synthesizer import synthesize_text
 from pipeline.merger import merge
 from generator.video_gen import generate_video
-from uploader.r2_upload import upload_video, upload_datamosh
+from uploader.r2_upload import upload_video, upload_datamosh, get_unique_filename
 from db.database import init_db, insert_run, update_datamosh_url
 
 
@@ -174,7 +174,11 @@ def main():
         style_mode = None
 
     # --- Generate video ---
-    video_filename = f"{today}.mp4"
+    # Check R2 for existing files with today's date and get a unique name
+    base_filename = f"{today}.mp4"
+    video_filename = get_unique_filename(base_filename)
+    if video_filename != base_filename:
+        print(f"  {base_filename} exists in R2, using {video_filename}")
     video_path = os.path.join(config.VIDEO_OUTPUT_DIR, video_filename)
 
     # Ensure video output directory exists
