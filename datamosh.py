@@ -35,49 +35,69 @@ DATAMOSH_OUTPUT = os.path.join(OUTPUT_DIR, "datamosh.mp4")
 def get_all_videos():
     """
     Get all video URLs/paths. Tries Postgres first, falls back to log.json.
+    Never combines both sources. Deduplicates by URL.
 
     Returns a list of (url_or_path, is_remote) tuples.
     """
-    # Try Postgres first
+    raw_urls = []
+    source = None
+
+    # Try Postgres first — only source if it works
     try:
         sys.path.insert(0, BASE_DIR)
         from db.database import get_all_runs
         runs = get_all_runs()
         if runs:
             entries = [r for r in runs if r.get("video_url")]
-            if len(entries) >= 2:
-                random.shuffle(entries)
-                result = []
-                for e in entries:
-                    url = e["video_url"]
-                    # R2 URLs start with http, local paths don't
-                    is_remote = url.startswith("http")
-                    result.append((url, is_remote))
-                return result
+            if entries:
+                raw_urls = [e["video_url"] for e in entries]
+                source = "Postgres"
     except Exception as e:
         print(f"  Postgres unavailable: {e}")
 
-    # Fall back to log.json
-    if not os.path.exists(LOG_FILE):
-        print("No log.json found")
+    # Fall back to log.json ONLY if Postgres didn't provide videos
+    if not raw_urls:
+        if not os.path.exists(LOG_FILE):
+            print("No log.json found")
+            sys.exit(1)
+
+        with open(LOG_FILE, "r") as f:
+            log = json.load(f)
+
+        for entry in log:
+            url = entry.get("video_url") or entry.get("video")
+            if url:
+                raw_urls.append(url)
+        source = "log.json"
+
+    # Deduplicate by URL
+    seen = set()
+    unique_urls = []
+    for url in raw_urls:
+        if url not in seen:
+            seen.add(url)
+            unique_urls.append(url)
+
+    dupes = len(raw_urls) - len(unique_urls)
+    if dupes:
+        print(f"  Removed {dupes} duplicate(s)")
+
+    if len(unique_urls) < 2:
+        print(f"Need at least 2 unique videos, found {len(unique_urls)}")
         sys.exit(1)
 
-    with open(LOG_FILE, "r") as f:
-        log = json.load(f)
+    # Print full list before processing
+    print(f"\n  Source: {source}")
+    print(f"  Processing {len(unique_urls)} unique videos:")
+    for url in unique_urls:
+        print(f"    → {url}")
 
-    with_video = [e for e in log if e.get("video_url") or e.get("video")]
-    if len(with_video) < 2:
-        print(f"Need at least 2 video entries, found {len(with_video)}")
-        sys.exit(1)
-
-    random.shuffle(with_video)
+    random.shuffle(unique_urls)
 
     result = []
-    for entry in with_video:
-        url = entry.get("video_url") or entry.get("video")
+    for url in unique_urls:
         is_remote = url.startswith("http")
         if not is_remote:
-            # Legacy local path — resolve relative to output dir
             url = os.path.join(OUTPUT_DIR, url)
         result.append((url, is_remote))
 
@@ -107,15 +127,16 @@ def run_ffmpeg(args):
 
 def strip_iframes(input_path, output_path):
     """
-    Read an mpeg2 file as raw bytes and convert most I-frames
-    into P-frames, keeping every 8th as a reset point.
+    Read an mpeg2 file as raw bytes and convert ALL I-frames
+    after the first into P-frames.
 
     MPEG2 picture start code: 0x00 0x00 0x01 0x00
     The byte at offset+5 contains picture_coding_type in bits 5-3:
       001 = I-frame, 010 = P-frame, 011 = B-frame
 
     We flip I-frame type bits to P-frame, forcing the decoder
-    to reuse motion vectors instead of resetting.
+    to reuse motion vectors instead of resetting. No I-frames
+    are retained — the decoder never gets a clean reset.
     """
     with open(input_path, "rb") as f:
         data = bytearray(f.read())
@@ -151,23 +172,15 @@ def strip_iframes(input_path, output_path):
             f.write(data)
         return
 
-    # Keep every 8th I-frame as a reset point so the image
-    # never gets completely unreadable. Creates a rhythm:
-    # build up chaos → brief reset → build up again
-    keep_every = 8
     stripped = 0
-    kept = 0
-    for i, iframe_pos in enumerate(iframe_positions[1:], start=1):
-        if i % keep_every == 0:
-            kept += 1
-            continue
+    for iframe_pos in iframe_positions[1:]:
         if iframe_pos + 5 < len(data):
             byte_val = data[iframe_pos + 5]
             byte_val = (byte_val & 0xC7) | (2 << 3)
             data[iframe_pos + 5] = byte_val
             stripped += 1
 
-    print(f"  Converted {stripped} I-frames to P-frames (kept {kept + 1} including first)")
+    print(f"  Converted {stripped} I-frames to P-frames (kept first only)")
 
     with open(output_path, "wb") as f:
         f.write(data)
@@ -210,6 +223,7 @@ def main():
                 "-codec:v", "mpeg2video",
                 "-q:v", "1",
                 "-bf", "0",
+                "-g", "1000",
                 "-colorspace", "bt709",
                 "-color_primaries", "bt709",
                 "-color_trc", "bt709",
