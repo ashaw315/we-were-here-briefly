@@ -23,7 +23,7 @@
       video.src = src;
     } else {
       // Legacy local fallback
-      video.src = "../output/datamosh.mp4";
+      video.src = "/datamosh.mp4";
     }
 
     video.muted = true;
@@ -54,7 +54,7 @@
     .catch(function () {
       // API unavailable — fall back to local log.json
       console.warn("API unavailable, falling back to log.json");
-      fetch("../output/log.json")
+      fetch("/log.json")
         .then(function (resp) { return resp.json(); })
         .then(function (data) {
           var entries = data.filter(function (e) {
@@ -67,7 +67,7 @@
             date: latest.date,
             sentence: latest.sentence,
             datamosh_url: null,
-            video_url: latest.video_url || ("../output/" + latest.video),
+            video_url: latest.video_url || latest.video,
           });
         })
         .catch(function (e) {
