@@ -107,8 +107,8 @@ def run_ffmpeg(args):
 
 def strip_iframes(input_path, output_path):
     """
-    Read an mpeg2 file as raw bytes and convert all I-frames
-    after the first one into P-frames.
+    Read an mpeg2 file as raw bytes and convert most I-frames
+    into P-frames, keeping every 8th as a reset point.
 
     MPEG2 picture start code: 0x00 0x00 0x01 0x00
     The byte at offset+5 contains picture_coding_type in bits 5-3:
@@ -151,15 +151,23 @@ def strip_iframes(input_path, output_path):
             f.write(data)
         return
 
+    # Keep every 8th I-frame as a reset point so the image
+    # never gets completely unreadable. Creates a rhythm:
+    # build up chaos → brief reset → build up again
+    keep_every = 8
     stripped = 0
-    for iframe_pos in iframe_positions[1:]:
+    kept = 0
+    for i, iframe_pos in enumerate(iframe_positions[1:], start=1):
+        if i % keep_every == 0:
+            kept += 1
+            continue
         if iframe_pos + 5 < len(data):
             byte_val = data[iframe_pos + 5]
             byte_val = (byte_val & 0xC7) | (2 << 3)
             data[iframe_pos + 5] = byte_val
             stripped += 1
 
-    print(f"  Converted {stripped} I-frames to P-frames")
+    print(f"  Converted {stripped} I-frames to P-frames (kept {kept + 1} including first)")
 
     with open(output_path, "wb") as f:
         f.write(data)
