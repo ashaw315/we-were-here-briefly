@@ -2,14 +2,15 @@
  * WE WERE HERE, BRIEFLY — fullscreen datamosh video.
  *
  * Fetches the latest run from /api/runs?latest to get the
- * datamosh_url (R2). Falls back to local datamosh.mp4 for
- * development (python -m http.server from project root).
+ * datamosh_url (R2). Falls back to R2 direct URL, then local
+ * datamosh.mp4 for development.
  */
 
 (function () {
   "use strict";
 
   var video = document.getElementById("video");
+  var R2_DATAMOSH = "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/datamosh.mp4";
 
   function play(src) {
     video.src = src;
@@ -26,14 +27,17 @@
       return resp.json();
     })
     .then(function (run) {
-      if (run.datamosh_url) {
-        play(run.datamosh_url);
-      } else {
-        play("../output/datamosh.mp4");
-      }
+      play(run.datamosh_url || R2_DATAMOSH);
     })
     .catch(function () {
-      play("../output/datamosh.mp4");
+      play(R2_DATAMOSH);
     });
+
+  // Local dev fallback — if R2 fails, try local file
+  video.addEventListener("error", function () {
+    if (video.src.indexOf("r2.dev") !== -1) {
+      play("../output/datamosh.mp4");
+    }
+  });
 
 })();
