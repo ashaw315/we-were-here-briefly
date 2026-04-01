@@ -1,4 +1,6 @@
 {
+  "framework": null,
+  "buildCommand": false,
   "outputDirectory": "public",
   "github": {
     "silent": true
