@@ -197,7 +197,17 @@ def main():
         for i, clip in enumerate(local_clips):
             print(f"  Processing clip {i + 1}/{total}: {os.path.basename(clip)}")
             temp_path = os.path.join(tmp, f"{i}.mpg")
-            run_ffmpeg(["-i", clip, "-codec:v", "mpeg2video", "-q:v", "2", "-an", temp_path])
+            run_ffmpeg([
+                "-i", clip,
+                "-codec:v", "mpeg2video",
+                "-q:v", "1",
+                "-bf", "0",
+                "-colorspace", "bt709",
+                "-color_primaries", "bt709",
+                "-color_trc", "bt709",
+                "-pix_fmt", "yuv420p",
+                "-an", temp_path,
+            ])
             temp_mpgs.append(temp_path)
 
         # Step 2 — Concatenate all clips
@@ -213,8 +223,17 @@ def main():
 
         # Step 4 — Convert back to mp4
         print("\nStep 4: Convert to mp4")
-        run_ffmpeg(["-i", temp_moshed, "-codec:v", "libx264", "-crf", "18",
-                    "-preset", "slow", DATAMOSH_OUTPUT])
+        run_ffmpeg([
+            "-i", temp_moshed,
+            "-codec:v", "libx264",
+            "-crf", "16",
+            "-preset", "slow",
+            "-colorspace", "bt709",
+            "-color_primaries", "bt709",
+            "-color_trc", "bt709",
+            "-pix_fmt", "yuv420p",
+            DATAMOSH_OUTPUT,
+        ])
 
     size_mb = os.path.getsize(DATAMOSH_OUTPUT) / (1024 * 1024)
     print(f"\nDatamosh complete: {DATAMOSH_OUTPUT}")

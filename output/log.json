@@ -16,5 +16,12 @@
     "seed": "elevator",
     "sentence": "A glass shaft's interior walls glisten with condensation and fingerprint oils, its surfaces bearing the warm indentations of shifting weight and the metallic residue of countless key card fumbles, while thick steel cables stretch taut with the memory of mechanical tension. The translucent blue-tinted surfaces pulse with the phantom heat of pressed palms and the granular texture of machine oil bleeding through microscopic cracks in the shaft's smooth walls.",
     "video": "videos/2026-03-20.mp4"
+  },
+  {
+    "date": "2026-03-31",
+    "seed": "saved",
+    "sentence": "A wet, calcified surface stretches impossibly long with seventeen perfect circular perforations that leak warm fluorescent liquid, each hole rimmed with the sticky residue of torn paper and the granular texture of dried adhesive mixed with crystallized prayer salt. The translucent mass pulses with embedded lighting that buzzes through its gelatinous interior, revealing coffee-stained impressions and the rough, worn patterns where desperate fingers once pressed against its yielding, northward-draining membrane.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-03-31.mp4",
+    "style_mode": "SENSORY/TEXTURAL"
   }
 ]
