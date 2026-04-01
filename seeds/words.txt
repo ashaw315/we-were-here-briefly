@@ -48,3 +48,82 @@ afternoon
 departure
 overdue
 lint
+Frank Stella
+Christopher Wool
+Michel Majerus
+Sigmar Polke
+Martin Kippenberger
+Albert Oehlen
+Charline von Heyl
+Laura Owens
+Amy Sillman
+On Kawara
+Hanne Darboven
+Lee Lozano
+Gordon Matta-Clark
+Robert Smithson
+Hans Haacke
+Lawrence Weiner
+Daniel Buren
+Sol LeWitt
+Carl Andre
+Cady Noland
+Andrea Fraser
+Martha Rosler
+Adrian Piper
+Mike Kelley
+Paul McCarthy
+Kara Walker
+Felix Gonzalez-Torres
+Roni Horn
+Wolfgang Tillmans
+Cindy Sherman
+Richard Prince
+Barbara Kruger
+Sherrie Levine
+Thomas Ruff
+Andreas Gursky
+Taryn Simon
+Trevor Paglen
+Walid Raad
+dematerialization
+institutional critique
+administration
+surplus
+reproduction
+remainder
+maintenance
+operations
+overhead
+provisional
+entropy
+duration
+site specificity
+displacement
+accumulation
+interval
+latency
+drift
+erosion
+sediment
+appropriation
+support surface
+caption
+annotation
+transcription
+index
+signal
+noise
+transmission
+resolution
+procedure
+inventory
+archive
+filing
+notation
+documentation
+protocol
+ledger
+register
+taxonomy
+Mary Weatherford
