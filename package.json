@@ -1,6 +1,7 @@
 {
-  "private": true,
+  "name": "we-were-here-briefly",
+  "version": "1.0.0",
   "dependencies": {
-    "pg": "^8.13.0"
+    "pg": "^8.11.0"
   }
 }

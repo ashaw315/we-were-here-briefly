@@ -31,8 +31,8 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // ?latest query param returns just the most recent run
-    const isLatest = "latest" in req.query;
+    // Support both /api/runs/latest and /api/runs?latest
+    const isLatest = req.url.includes("/latest") || "latest" in req.query;
 
     let query;
     if (isLatest) {
