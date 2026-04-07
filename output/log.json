@@ -25,38 +25,66 @@
     "style_mode": "SENSORY/TEXTURAL"
   },
   {
-    "date": "2026-04-02",
-    "seed": "displacement",
-    "sentence": "Rough-hewn wood grain ripples with amber coffee ring stains that pulse and breathe, their sticky lacquered edges catching fluorescent light while scattered graphite smudges from erased equations dissolve into the grain like warm mercury. The surface undulates gently, its pores weeping translucent droplets that magnify the ghostly impressions of forgotten eyeglass frames pressed deep into the scarred veneer.",
-    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-02-5.mp4",
+    "date": "2026-04-01",
+    "seed": "interval",
+    "sentence": "Translucent geometric shapes pulse and merge on a surface streaked with purple highlighter residue and warm red ink bleeds, the material shifting between the waxy smoothness of marker coating and the slightly raised texture of dried sweat stains. The surface breathes with the accumulated pressure of a thousand careful finger taps, each contact point glowing faintly as coffee-stained digital pixels dissolve into tactile impressions of obsessive precision.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-01.mp4",
     "style_mode": "SENSORY/TEXTURAL"
   },
   {
-    "date": "2026-04-03",
-    "seed": "afternoon",
-    "sentence": "A commuter's dashboard camera glitches mid-recording as lunch schedules CASCADE across the windshield in corrupted text overlays while their grandmother's doorway DUPLICATES infinitely through the rearview mirror, each iteration more pixelated than the last as \"IRELAND_SPOOKY_SUN.mov BUFFER UNDERRUN\" flickers over jogger breath condensing into frozen polygonal artifacts. The cell service bars dissolve into sticky soda residue data streams while thirty years of dinner sounds decompress into hex values floating through morning air that won't finish rendering, progress bar stuck at 67% as secret words for darkness scatter across picnic blanket textures failing to load properly.",
-    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-03.mp4",
-    "style_mode": "GLITCH/SYSTEM"
+    "date": "2026-04-01",
+    "seed": "crosswalk",
+    "sentence": "A pelican waddles through a suburban kitchen where crosswalk stripes have been painted across the linoleum floor, while Brisbane school children press their faces against the refrigerator door, watching their mother frantically stuff crumpled permission slips into the freezer drawer as a crossing guard's whistle echoes from inside the pantry. The kitchen timer beeps like a crosswalk signal, causing everyone to freeze mid-motion except the pelican, who continues its deliberate march toward the morning light streaming through the window.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-01.mp4",
+    "style_mode": "REPRESENTATIONAL"
   },
   {
-    "date": "2026-04-04",
-    "seed": "notation",
-    "sentence": "A fluorescent-lit copy room between floors where photocopied sheet music bleeds orange marker ink onto medical charts, while disembodied hands pause mid-scribble over coefficients that keep changing from numbers to musical notes. The vending machine hums in B-flat as someone's phone buzzes under a stack of half-graded papers, but the elevator never arrives to take them to their actual meeting.",
-    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-04.mp4",
+    "date": "2026-04-01",
+    "seed": "waiting room",
+    "sentence": "A waiting room floats between floors, where green chairs vibrate with phantom fidgeting while celebrity teeth spill from an open kitchen drawer that shouldn't exist here, appointment cards scattered across orange bench cushions that still hold the shape of bodies mid-departure. The fluorescent lights flicker in rhythm with a bus that used to stop outside, casting shadows of half-filled forms and Guinea-Bissau postcards onto walls that seem equidistant from everywhere and nowhere at once.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-01-1.mp4",
     "style_mode": "LIMINAL"
   },
   {
-    "date": "2026-04-05",
-    "seed": "overdue",
-    "sentence": "Rectangular patches of red pulse in mechanical intervals against white surfaces, their edges softening and hardening in rhythm with an invisible deadline countdown. The red spreads in tired, repetitive stamps across the white field, each impression slightly more blurred than the last as the pattern degrades into anxious, accelerating beats.",
-    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-05.mp4",
-    "style_mode": "ABSTRACT"
+    "date": "2026-04-01",
+    "seed": "Cindy Sherman",
+    "sentence": "Cynthia adjusts her leopard scarf in the toolshed's cracked mirror while her inverted aircraft hovers above expired library books, dispensing birthday party business cards instead of sorted medicine. The Henderson kid's clown costume hangs from the aircraft's wing in a dry cleaner's bag, rustling as vanilla-scented developer drips onto appointment cards scattered across the wooden floor.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-01-2.mp4",
+    "style_mode": "REPRESENTATIONAL"
   },
   {
-    "date": "2026-04-06",
-    "seed": "caption",
-    "sentence": "A woman's face renders in stuttering fragments\u2014her eyes duplicated across frozen Instagram story templates while compressed Urdu text bleeds cyan and magenta through her dissolving features, interrupted by ERROR 0x80004005 dialogs that flicker between \"LOADING POETRY.exe\" and corrupted marketing automation dashboards. The scene locks at 34% buffer completion as city lights smear into horizontal scan lines through her partially-loaded smile, magazine layout grids overlaying her mouth like digital artifacts of forgotten conversations trapped in sedimentary RAM.",
-    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-06.mp4",
-    "style_mode": "GLITCH/SYSTEM"
+    "date": "2026-04-02",
+    "seed": "socket",
+    "sentence": "A parent in a rotating hotel room frantically tries to plug fourteen different white charging cables into hydraulic wall sockets that keep shifting positions every six seconds, while their children's devices pile up on beds that span across different countries. The Allen wrench in their hand sparks each time they attempt to square it against the tank-like outlet system, measuring the shallow depth needed to finally connect something, anything, before the room pivots again.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-02.mp4",
+    "style_mode": "REPRESENTATIONAL"
+  },
+  {
+    "date": "2026-04-02",
+    "seed": "transcription",
+    "sentence": "A graduate student frantically feeds torn pages from their dissertation into an industrial threading machine that counts backwards, the mechanism jamming as coffee-stained diagrams of viral proteins get tangled in the gears. In the abandoned laboratory, the machine continues its reverse assembly process, spitting out fragments of academic diagrams while the toner from countless reprints slowly drips onto the floor like black rain.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-02-1.mp4",
+    "style_mode": "REPRESENTATIONAL"
+  },
+  {
+    "date": "2026-04-02",
+    "seed": "Andreas Gursky",
+    "sentence": "A pixelated surface ripples with the heat of digital transactions, its grainy texture pulsing between the cool blue of screen-light and the warm amber residue of sleepless commerce. The material shifts from smooth glass to corrugated metal to synthetic grass, each transition marked by the pressure-ghosts of clipboard corners, car door edges, and fingertips that once hesitated over candy wrapper crinkle.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-02-2.mp4",
+    "style_mode": "SENSORY/TEXTURAL"
+  },
+  {
+    "date": "2026-04-02",
+    "seed": "index",
+    "sentence": "A thick, leather-bound surface splits open to reveal crackling electrical filaments threading through wet, papery layers that pulse with warm amber light. Steam rises from copper-stained pages as they curl and spark, their edges worn smooth by countless fingers, leaving behind residual heat that makes the entire textured plane shimmer and contract.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-02-3.mp4",
+    "style_mode": "SENSORY/TEXTURAL"
+  },
+  {
+    "date": "2026-04-02",
+    "seed": "parking",
+    "sentence": "A confused elderly man stands beside towering parking meters that have sprouted like mechanical trees throughout a shopping mall lot, while a maintenance worker patiently explains how the blinking sensors respond to coins that no longer match the updated rates. Three rows back, someone in sensible shoes backs their car into spot 47 with mechanical precision, unaware that the meters around them still hold obsolete currency from before the city's rate change.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-02-4.mp4",
+    "style_mode": "REPRESENTATIONAL"
   }
 ]

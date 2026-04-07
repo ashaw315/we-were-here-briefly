@@ -268,6 +268,8 @@ def main():
         datamosh_url = upload_datamosh(DATAMOSH_OUTPUT)
         if datamosh_url:
             print(f"  R2 URL: {datamosh_url}")
+            # Machine-readable line for main.py to capture
+            print(f"DATAMOSH_URL:{datamosh_url}")
             # Delete local file after successful upload
             os.remove(DATAMOSH_OUTPUT)
             print(f"  Deleted local datamosh file")

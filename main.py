@@ -224,13 +224,35 @@ def main():
         print("\n  Skipping upload/log — no video file on disk")
 
     # --- Generate datamosh ---
-    datamosh_url = run_stage(
+    # Run datamosh as a subprocess and capture stdout to extract the
+    # R2 URL. datamosh.py prints "DATAMOSH_URL:<url>" on success.
+    datamosh_result = run_stage(
         "Datamosh",
         lambda: subprocess.run(
             [sys.executable, os.path.join(config.BASE_DIR, "datamosh.py")],
-            check=True
+            check=True,
+            capture_output=True,
+            text=True,
         )
     )
+
+    # Print captured datamosh output so it appears in pipeline logs
+    if datamosh_result:
+        if datamosh_result.stdout:
+            print(datamosh_result.stdout)
+        if datamosh_result.stderr:
+            print(datamosh_result.stderr)
+
+    # Extract datamosh URL from subprocess output and update the DB row
+    if datamosh_result and run_id:
+        for line in (datamosh_result.stdout or "").splitlines():
+            if line.startswith("DATAMOSH_URL:"):
+                datamosh_url = line.split(":", 1)[1]
+                run_stage(
+                    "Update datamosh URL",
+                    lambda: update_datamosh_url(run_id, datamosh_url)
+                )
+                break
 
     # --- Clean up temp files ---
     run_stage("Clean up", cleanup_temp)
