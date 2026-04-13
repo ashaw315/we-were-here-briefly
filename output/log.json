@@ -128,5 +128,12 @@
     "sentence": "A figure hunches over a cracked laptop in an empty WeWork corridor at 3 AM, the screen's yellow glare bleeding into the fluorescent half-light as angry notification beeps echo through the liminal space between night shift and morning prep. The elevator doors behind them stay perpetually half-open, revealing glimpses of energy drink cans and MIDI cables scattered across the threshold between floors that don't quite exist.",
     "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-12.mp4",
     "style_mode": "LIMINAL"
+  },
+  {
+    "date": "2026-04-13",
+    "seed": "Michel Majerus",
+    "sentence": "Concrete surface scarred with rectangular impressions where pixelated corporate residue has oxidized into purple-black stains, each deposit leaking chromatic fluid that pools and crystallizes against industrial aggregate. The wall bleeds mint green through cracks while rainbow polymer fragments embed themselves like digital confetti in the porous gray texture, creating a tactile palimpsest of accumulated brand debris.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-13.mp4",
+    "style_mode": "SENSORY/TEXTURAL"
   }
 ]
