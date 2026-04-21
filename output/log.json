@@ -184,5 +184,12 @@
     "sentence": "Trevor stands in an empty airport gate at dawn, pointing his oversized camera through floor-to-ceiling windows at planes that never quite take off, while scattered passengers hold phones toward fluorescent lights that might be meteors. The departure board flickers between destinations that don't exist, and everyone remains frozen mid-step on the moving walkway that stopped working hours ago but still hums.",
     "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-20.mp4",
     "style_mode": "LIMINAL"
+  },
+  {
+    "date": "2026-04-21",
+    "seed": "support surface",
+    "sentence": "A hospital corridor at shift change where wheeled beds drift in slow counterclockwise circles past mirrors that reflect empty sleeves and half-buttoned garments, while someone practices their confident walk between the rotating gurneys, checking pockets that may or may not contain keys. The fluorescent lights flicker in rhythm with the bed rotations as fabric memories of indecision hang suspended in the antiseptic air, neither arriving at a destination nor departing from an origin point.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-04-21.mp4",
+    "style_mode": "LIMINAL"
   }
 ]
