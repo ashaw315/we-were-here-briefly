@@ -14,11 +14,30 @@ How it works:
 
 The result is the real datamosh effect: ghostly smeared
 figures bleeding across the entire video timeline.
+
+After generating datamosh.mp4 we convert it to HLS (chunked .ts
+segments + an .m3u8 playlist) and serve THAT to the site, so the
+browser streams ~6s chunks on demand instead of loading one 268MB
+file. The mp4 is still uploaded too (kept for admin download).
+
+# IMPORTANT: R2 bucket requires CORS configuration for HLS.
+# In Cloudflare R2 dashboard → we-were-here-briefly →
+# Settings → CORS Policy → add:
+# [
+#   {
+#     "AllowedOrigins": ["*"],
+#     "AllowedMethods": ["GET", "HEAD"],
+#     "AllowedHeaders": ["*"],
+#     "ExposeHeaders": ["Content-Length"],
+#     "MaxAgeSeconds": 3600
+#   }
+# ]
 """
 
 import json
 import os
 import random
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -30,6 +49,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output")
 LOG_FILE = os.path.join(OUTPUT_DIR, "log.json")
 DATAMOSH_OUTPUT = os.path.join(OUTPUT_DIR, "datamosh.mp4")
+HLS_DIR = os.path.join(OUTPUT_DIR, "hls")
 
 
 def get_all_videos():
@@ -186,6 +206,111 @@ def strip_iframes(input_path, output_path):
         f.write(data)
 
 
+def convert_to_hls(input_path):
+    """
+    Convert a datamosh mp4 into an HLS bundle and upload it to R2.
+
+    Splits the mp4 into ~6s .ts chunks plus an .m3u8 playlist, uploads
+    every file to R2 under the hls/ prefix, repoints every Postgres run
+    at the new playlist URL, and cleans up the local hls dir.
+
+    Returns the public .m3u8 URL, or None if R2 isn't configured.
+    """
+    print("\n" + "=" * 50)
+    print("HLS CONVERSION")
+    print("=" * 50)
+
+    # Fresh output/hls/ — clear any stale chunks from a previous run.
+    if os.path.isdir(HLS_DIR):
+        shutil.rmtree(HLS_DIR)
+    os.makedirs(HLS_DIR, exist_ok=True)
+
+    playlist_path = os.path.join(HLS_DIR, "datamosh.m3u8")
+    segment_pattern = os.path.join(HLS_DIR, "chunk%03d.ts")
+
+    print("\nStep 1: Split into HLS chunks")
+    run_ffmpeg([
+        "-i", input_path,
+        "-codec:v", "libx264",
+        "-crf", "23",
+        "-preset", "fast",
+        "-codec:a", "aac",
+        "-hls_time", "6",
+        "-hls_playlist_type", "vod",
+        "-hls_segment_filename", segment_pattern,
+        "-hls_flags", "independent_segments",
+        playlist_path,
+    ])
+
+    chunks = sorted(f for f in os.listdir(HLS_DIR) if f.endswith(".ts"))
+    total_size = sum(
+        os.path.getsize(os.path.join(HLS_DIR, f)) for f in os.listdir(HLS_DIR)
+    )
+    print(f"  Created {len(chunks)} chunks "
+          f"({total_size / 1024 / 1024:.1f} MB total)")
+
+    # Step 2 — Upload the whole bundle to R2.
+    print("\nStep 2: Upload HLS bundle to R2")
+    try:
+        sys.path.insert(0, BASE_DIR)
+        from uploader.r2_upload import upload_hls_dir
+        playlist_url = upload_hls_dir(HLS_DIR)
+    except Exception as e:
+        print(f"  HLS upload skipped: {e}")
+        shutil.rmtree(HLS_DIR, ignore_errors=True)
+        return None
+
+    if not playlist_url:
+        print("  R2 not configured — HLS bundle left in output/hls/")
+        return None
+
+    print(f"  Playlist URL: {playlist_url}")
+
+    # Step 3 — Repoint every run at the new playlist.
+    print("\nStep 3: Update Postgres datamosh_url for all runs")
+    try:
+        from db.database import update_all_datamosh_urls
+        updated = update_all_datamosh_urls(playlist_url)
+        if updated is None:
+            print("  Postgres not configured — skipped")
+        else:
+            print(f"  Updated {updated} run(s)")
+    except Exception as e:
+        print(f"  Postgres update skipped: {e}")
+
+    # Step 4 — Clean up local hls dir.
+    shutil.rmtree(HLS_DIR, ignore_errors=True)
+    print("  Cleaned up output/hls/")
+
+    return playlist_url
+
+
+def hls_only():
+    """
+    Standalone entry: download the existing datamosh.mp4 from R2 and
+    convert it to HLS — without re-running the mosh pipeline.
+
+    Used by `python datamosh.py --hls-only` to chunk the mp4 that's
+    already live (the local copy is deleted after each pipeline run).
+    """
+    print("=" * 50)
+    print("DATAMOSH — HLS ONLY (from existing R2 mp4)")
+    print("=" * 50)
+
+    import config
+    source_url = f"{config.R2_PUBLIC_URL}/datamosh.mp4"
+
+    with tempfile.TemporaryDirectory() as tmp:
+        local_mp4 = os.path.join(tmp, "datamosh.mp4")
+        print(f"\n  Source: {source_url}")
+        download_remote(source_url, local_mp4)
+        playlist_url = convert_to_hls(local_mp4)
+
+    if playlist_url:
+        print(f"\nDone. Site playlist: {playlist_url}")
+        print(f"HLS_URL:{playlist_url}")
+
+
 def main():
     print("=" * 50)
     print("DATAMOSH")
@@ -261,21 +386,33 @@ def main():
     print(f"\nDatamosh complete: {DATAMOSH_OUTPUT}")
     print(f"  Size: {size_mb:.1f} MB")
 
-    # Upload to R2 if configured
+    # Upload mp4 to R2 if configured. The mp4 is kept on R2 (for admin
+    # download); the site itself streams the HLS playlist built below.
+    uploaded = False
     try:
         sys.path.insert(0, BASE_DIR)
         from uploader.r2_upload import upload_datamosh
         datamosh_url = upload_datamosh(DATAMOSH_OUTPUT)
         if datamosh_url:
-            print(f"  R2 URL: {datamosh_url}")
+            uploaded = True
+            print(f"  R2 URL (mp4, admin): {datamosh_url}")
             # Machine-readable line for main.py to capture
             print(f"DATAMOSH_URL:{datamosh_url}")
-            # Delete local file after successful upload
-            os.remove(DATAMOSH_OUTPUT)
-            print(f"  Deleted local datamosh file")
     except Exception as e:
         print(f"  R2 upload skipped: {e}")
 
+    # Convert the mp4 to HLS and point the site at the playlist.
+    convert_to_hls(DATAMOSH_OUTPUT)
+
+    # Delete the local mp4 only after a successful R2 upload (it lives
+    # on R2 now). If upload was skipped, keep it locally.
+    if uploaded:
+        os.remove(DATAMOSH_OUTPUT)
+        print(f"  Deleted local datamosh file")
+
 
 if __name__ == "__main__":
-    main()
+    if "--hls-only" in sys.argv:
+        hls_only()
+    else:
+        main()

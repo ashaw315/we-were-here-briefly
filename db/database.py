@@ -126,6 +126,29 @@ def update_datamosh_url(run_id, datamosh_url):
         conn.close()
 
 
+def update_all_datamosh_urls(datamosh_url):
+    """
+    Set datamosh_url for EVERY run in one statement.
+
+    Called after HLS conversion so every run points at the new
+    .m3u8 playlist URL (all runs share the same composite video).
+
+    Returns the number of rows updated, or None if not configured.
+    """
+    conn = _get_connection()
+    if not conn:
+        return None
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE runs SET datamosh_url = %s", (datamosh_url,))
+            updated = cur.rowcount
+        conn.commit()
+        return updated
+    finally:
+        conn.close()
+
+
 def get_all_runs():
     """
     Fetch all runs, newest first.
