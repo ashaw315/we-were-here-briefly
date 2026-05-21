@@ -120,6 +120,69 @@ def upload_datamosh(local_path):
     return upload_video(local_path, "datamosh.mp4")
 
 
+def upload_file_with_type(local_path, key, content_type):
+    """
+    Upload a single file to R2 under an arbitrary key with an
+    explicit Content-Type. Overwrites any existing object at that key.
+
+    Returns the public URL, or None if R2 isn't configured.
+    """
+    client = _get_client()
+    if not client:
+        return None
+
+    client.upload_file(
+        local_path,
+        config.R2_BUCKET_NAME,
+        key,
+        ExtraArgs={"ContentType": content_type},
+    )
+    return f"{config.R2_PUBLIC_URL}/{key}"
+
+
+def upload_hls_dir(local_dir):
+    """
+    Upload an HLS bundle (playlist + .ts chunks) from local_dir to R2
+    under the "hls/" prefix, with correct content types:
+      .m3u8 → application/vnd.apple.mpegurl
+      .ts   → video/mp2t
+
+    Prints "Uploading chunk X/Y..." progress for every file (there may
+    be 50+). Overwrites the hls/ prefix so the playlist URL is stable.
+
+    Returns the public URL of hls/datamosh.m3u8, or None if R2 isn't
+    configured.
+    """
+    client = _get_client()
+    if not client:
+        return None
+
+    content_types = {
+        ".m3u8": "application/vnd.apple.mpegurl",
+        ".ts": "video/mp2t",
+    }
+
+    # Sort so chunk000, chunk001, ... upload in order; playlist included.
+    files = sorted(os.listdir(local_dir))
+    total = len(files)
+    playlist_url = None
+
+    for i, name in enumerate(files, start=1):
+        local_path = os.path.join(local_dir, name)
+        if not os.path.isfile(local_path):
+            continue
+        ext = os.path.splitext(name)[1].lower()
+        content_type = content_types.get(ext, "application/octet-stream")
+        key = f"hls/{name}"
+
+        print(f"  Uploading chunk {i}/{total}: {name}")
+        url = upload_file_with_type(local_path, key, content_type)
+        if name == "datamosh.m3u8":
+            playlist_url = url
+
+    return playlist_url
+
+
 def delete_file(filename):
     """
     Delete a file from R2. Used by tests for cleanup.
