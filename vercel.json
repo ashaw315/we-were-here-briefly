@@ -9,6 +9,6 @@
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
+    { "source": "/api/runs/latest", "destination": "/api/runs?latest=1" }
   ]
 }
