@@ -11,16 +11,15 @@ Pipeline:
   4. Merge both tracks into one surreal composite sentence
   5. Kling 1.6 generates a 5-second video via fal.ai
   6. Upload video to R2, save metadata to Postgres + log.json
-  7. Run datamosh on all videos, upload result to R2
-  8. Clean up temp files
+  7. Generate Kling O1 transitions (previous → new, new → first/loop)
+  8. Reassemble the full clips+transitions loop, republish as HLS
+  9. Clean up temp files
 """
 
 import json
 import os
 import random
 import shutil
-import subprocess
-import sys
 from datetime import datetime, timezone
 
 import config
@@ -30,8 +29,13 @@ from pipeline.image_analyzer import analyze_images
 from pipeline.text_synthesizer import synthesize_text
 from pipeline.merger import merge
 from generator.video_gen import generate_video
-from uploader.r2_upload import upload_video, upload_datamosh, get_unique_filename
-from db.database import init_db, insert_run, update_datamosh_url
+from generator.transition_gen import generate_transition
+from assembler.assemble import assemble_final_video
+from uploader.r2_upload import upload_video, get_unique_filename
+from db.database import (
+    init_db, insert_run, update_transition_url,
+    get_all_runs_ordered, get_first_run,
+)
 
 
 # Temp directory used by image_scraper for downloads
@@ -223,36 +227,56 @@ def main():
     else:
         print("\n  Skipping upload/log — no video file on disk")
 
-    # --- Generate datamosh ---
-    # Run datamosh as a subprocess and capture stdout to extract the
-    # R2 URL. datamosh.py prints "DATAMOSH_URL:<url>" on success.
-    datamosh_result = run_stage(
-        "Datamosh",
-        lambda: subprocess.run(
-            [sys.executable, os.path.join(config.BASE_DIR, "datamosh.py")],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    )
+    # --- Transition stages (replaces datamosh) ---
+    # Build the seamless loop: a Kling O1 transition from the PREVIOUS run
+    # to this new run, plus a loop-closing transition from this new run
+    # back to the very first run. Then reassemble the full HLS stream.
+    #
+    # These only run if we actually inserted a new run this time.
+    if run_id and video_url:
+        # Transition: previous run → new run.
+        # get_all_runs_ordered() is date/id ASC, so the new run is last
+        # and the previous run is second-to-last.
+        all_ordered = get_all_runs_ordered() or []
+        previous_run = all_ordered[-2] if len(all_ordered) >= 2 else None
 
-    # Print captured datamosh output so it appears in pipeline logs
-    if datamosh_result:
-        if datamosh_result.stdout:
-            print(datamosh_result.stdout)
-        if datamosh_result.stderr:
-            print(datamosh_result.stderr)
-
-    # Extract datamosh URL from subprocess output and update the DB row
-    if datamosh_result and run_id:
-        for line in (datamosh_result.stdout or "").splitlines():
-            if line.startswith("DATAMOSH_URL:"):
-                datamosh_url = line.split(":", 1)[1]
-                run_stage(
-                    "Update datamosh URL",
-                    lambda: update_datamosh_url(run_id, datamosh_url)
+        if previous_run:
+            transition_url = run_stage(
+                "Generate transition (previous → new)",
+                lambda: generate_transition(
+                    previous_run["video_url"], video_url,
+                    previous_run["id"], run_id,
+                    seed_a=previous_run.get("seed"), seed_b=seed_word,
                 )
-                break
+            )
+            if transition_url:
+                run_stage(
+                    "Update previous transition URL",
+                    lambda: update_transition_url(previous_run["id"],
+                                                  transition_url)
+                )
+
+        # Loop-closing transition: new run → first run.
+        first_run = get_first_run()
+        if first_run and first_run["id"] != run_id:
+            loop_url = run_stage(
+                "Generate loop-closing transition (new → first)",
+                lambda: generate_transition(
+                    video_url, first_run["video_url"],
+                    run_id, first_run["id"],
+                    seed_a=seed_word, seed_b=first_run.get("seed"),
+                )
+            )
+            if loop_url:
+                run_stage(
+                    "Update loop-closing transition URL",
+                    lambda: update_transition_url(run_id, loop_url)
+                )
+
+        # Reassemble + republish the full HLS stream.
+        run_stage("Assemble final video", assemble_final_video)
+    else:
+        print("\n  Skipping transitions/assembly — no new run this time")
 
     # --- Clean up temp files ---
     run_stage("Clean up", cleanup_temp)

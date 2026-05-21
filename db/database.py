@@ -60,6 +60,13 @@ def init_db():
                     created_at TIMESTAMP DEFAULT NOW()
                 );
             """)
+            # Kling O1 transition video URL for the transition FROM this
+            # run TO the next (chronologically). The last run's value is
+            # the loop-closing transition back to run 1. Added via ALTER
+            # so existing databases pick it up idempotently.
+            cur.execute(
+                "ALTER TABLE runs ADD COLUMN IF NOT EXISTS transition_url TEXT;"
+            )
         conn.commit()
         print("  Database initialized")
         return True
@@ -149,6 +156,109 @@ def update_all_datamosh_urls(datamosh_url):
         conn.close()
 
 
+def update_transition_url(run_id, transition_url):
+    """
+    Set the transition_url for a specific run — the Kling O1 transition
+    FROM this run TO the next chronological run.
+
+    Returns True if updated, None if not configured.
+    """
+    conn = _get_connection()
+    if not conn:
+        return None
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE runs SET transition_url = %s WHERE id = %s",
+                (transition_url, run_id),
+            )
+        conn.commit()
+        return True
+    finally:
+        conn.close()
+
+
+def get_all_runs_ordered():
+    """
+    Fetch all runs in stable chronological order (date ASC, id ASC).
+
+    Unlike get_all_runs() (which is created_at DESC), this is the order
+    the final video is assembled in — oldest first, ties broken by id so
+    the sequence is deterministic across runs.
+
+    Returns a list of dicts, or None if not configured.
+    """
+    conn = _get_connection()
+    if not conn:
+        return None
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, date, seed, sentence, video_url,
+                          datamosh_url, transition_url, style_mode, created_at
+                   FROM runs ORDER BY date ASC, id ASC"""
+            )
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+        return [dict(zip(columns, row)) for row in rows]
+    finally:
+        conn.close()
+
+
+def get_first_run():
+    """
+    Fetch the oldest run (date ASC, id ASC).
+
+    Returns a dict, or None if not configured / no runs exist.
+    """
+    conn = _get_connection()
+    if not conn:
+        return None
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, date, seed, sentence, video_url,
+                          datamosh_url, transition_url, style_mode, created_at
+                   FROM runs ORDER BY date ASC, id ASC LIMIT 1"""
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            columns = [desc[0] for desc in cur.description]
+        return dict(zip(columns, row))
+    finally:
+        conn.close()
+
+
+def get_last_run():
+    """
+    Fetch the most recent run (date DESC, id DESC).
+
+    Returns a dict, or None if not configured / no runs exist.
+    """
+    conn = _get_connection()
+    if not conn:
+        return None
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, date, seed, sentence, video_url,
+                          datamosh_url, transition_url, style_mode, created_at
+                   FROM runs ORDER BY date DESC, id DESC LIMIT 1"""
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            columns = [desc[0] for desc in cur.description]
+        return dict(zip(columns, row))
+    finally:
+        conn.close()
+
+
 def get_all_runs():
     """
     Fetch all runs, newest first.
@@ -165,7 +275,7 @@ def get_all_runs():
         with conn.cursor() as cur:
             cur.execute(
                 """SELECT id, date, seed, sentence, video_url,
-                          datamosh_url, style_mode, created_at
+                          datamosh_url, transition_url, style_mode, created_at
                    FROM runs ORDER BY created_at DESC"""
             )
             columns = [desc[0] for desc in cur.description]
@@ -191,7 +301,7 @@ def get_latest_run():
         with conn.cursor() as cur:
             cur.execute(
                 """SELECT id, date, seed, sentence, video_url,
-                          datamosh_url, style_mode, created_at
+                          datamosh_url, transition_url, style_mode, created_at
                    FROM runs ORDER BY created_at DESC LIMIT 1"""
             )
             row = cur.fetchone()

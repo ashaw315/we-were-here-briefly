@@ -5,3 +5,6 @@ __pycache__
 .venv
 output/videos/*.mp4
 output/datamosh.mp4
+output/final.mp4
+output/hls/
+output/test_transitions/
