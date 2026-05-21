@@ -79,6 +79,35 @@ def _probe_duration(path):
         return None
 
 
+def _probe_dimensions(path):
+    """Return (width, height) of a video's first stream, or None if invalid."""
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=width,height",
+         "-of", "csv=p=0:s=x", path],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        return None
+    try:
+        w, h = result.stdout.strip().split("x")
+        return (int(w), int(h))
+    except (ValueError, IndexError):
+        return None
+
+
+def _all_same_dimensions(local_files):
+    """
+    True only if every input shares one resolution. ffmpeg's concat
+    demuxer with -c copy does NOT rescale — it inherits the first input's
+    dimensions, so mismatched sizes (e.g. 720p source clips + 1080p
+    transitions) produce a stream that probes fine but plays back garbled
+    at the boundaries. When sizes differ we must re-encode.
+    """
+    dims = {_probe_dimensions(p) for p in local_files}
+    return len(dims) == 1 and None not in dims
+
+
 def _build_sequence(runs):
     """
     Build the ordered list of (label, url) parts to concatenate:
@@ -213,9 +242,19 @@ def assemble_final_video():
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         concat_list = os.path.join(tmp, "concat_list.txt")
 
-        print("\n  Concatenating (trying -c copy)...")
-        if not _concat_copy(local_files, concat_list, final_mp4):
-            print("  Re-encoding all parts to a uniform stream...")
+        # Decide copy vs re-encode by dimensional uniformity. -c copy is
+        # only safe when every input is the same resolution; our source
+        # clips (Kling 1.6, 720p) and transitions (Kling O1, 1080p) differ,
+        # so this normally re-encodes. We still try copy when sizes match
+        # (fast, lossless), and fall back to re-encode if copy then fails.
+        if _all_same_dimensions(local_files):
+            print("\n  All inputs share one resolution — trying -c copy...")
+            if not _concat_copy(local_files, concat_list, final_mp4):
+                print("  Re-encoding all parts to a uniform stream...")
+                _concat_reencode(local_files, final_mp4)
+        else:
+            print("\n  Mixed input resolutions — re-encoding to uniform "
+                  "1920×1080...")
             _concat_reencode(local_files, final_mp4)
 
         total_duration = _probe_duration(final_mp4) or 0.0
