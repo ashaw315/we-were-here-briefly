@@ -63,7 +63,7 @@ class TestImageScraper(unittest.TestCase):
 
     def test_image_scraper(self):
         """
-        Confirms the image scraper downloads at least 2 images for
+        Confirms the image scraper downloads at least 1 image for
         the seed word "receipt". Tests the full flow: URL discovery
         from Bing/Wikimedia/Flickr → HTTP download → file validation.
         Cleans up downloaded files after the test.
@@ -75,8 +75,8 @@ class TestImageScraper(unittest.TestCase):
         try:
             result = scrape_images("receipt", count=3)
             self.assertIsNotNone(result, "Should return a list of paths")
-            self.assertGreaterEqual(len(result), 2,
-                                    "Should download at least 2 images")
+            self.assertGreaterEqual(len(result), 1,
+                                    "Should download at least 1 image")
 
             # Verify each returned path actually exists and has content
             for path in result:

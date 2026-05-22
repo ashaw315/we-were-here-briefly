@@ -295,10 +295,16 @@ def scrape_images(seed_word, count=5):
     except Exception as e:
         print(f"  Bing Images failed: {e}")
 
-    # Fall back to Wikimedia Commons (reliable, API-based)
-    if not image_urls:
+    # Fall back to Wikimedia Commons (reliable, API-based).
+    # Bing can return only 1-2 URLs when rate-limited; in that case
+    # supplement with Wikimedia so Claude Vision has enough images.
+    if len(image_urls) < 3:
         try:
-            image_urls = scrape_wikimedia_images(seed_word, count=count)
+            wiki_urls = scrape_wikimedia_images(seed_word, count=count)
+            # Merge, preserving Bing results and dropping duplicates
+            for url in wiki_urls:
+                if url not in image_urls:
+                    image_urls.append(url)
         except Exception as e:
             print(f"  Wikimedia Commons failed: {e}")
 
