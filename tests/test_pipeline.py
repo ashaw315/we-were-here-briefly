@@ -88,6 +88,63 @@ class TestImageScraper(unittest.TestCase):
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
 
+    def test_image_scraper_bing_fallback(self):
+        """
+        When Bing is rate-limited and returns only 1 URL, the scraper
+        should fall through to Wikimedia Commons and merge the results
+        so the pipeline still has enough images (>= 3) for Claude Vision.
+
+        Bing, Wikimedia, and the downloader are mocked so this exercises
+        the merge logic without hitting the network.
+        """
+        from unittest import mock
+        from scraper import image_scraper
+
+        temp_dir = os.path.join(config.OUTPUT_DIR, "temp")
+
+        # Bing rate-limited: only 1 URL. Wikimedia supplies the rest.
+        bing_urls = ["https://bing.example/img0.jpg"]
+        wiki_urls = [
+            "https://upload.wikimedia.org/img_a.jpg",
+            "https://upload.wikimedia.org/img_b.jpg",
+            "https://upload.wikimedia.org/img_c.jpg",
+        ]
+
+        os.makedirs(temp_dir, exist_ok=True)
+        # download_images returns one local path per URL it's handed.
+        # Create real files so the cleanup assertion below is meaningful.
+        def fake_download(urls):
+            paths = []
+            for i, _ in enumerate(urls):
+                p = os.path.join(temp_dir, f"img_{i}.jpg")
+                with open(p, "wb") as fh:
+                    fh.write(b"x" * 6000)
+                paths.append(p)
+            return paths
+
+        try:
+            with mock.patch.object(image_scraper, "scrape_bing_images",
+                                   return_value=list(bing_urls)) as m_bing, \
+                 mock.patch.object(image_scraper, "scrape_wikimedia_images",
+                                   return_value=list(wiki_urls)) as m_wiki, \
+                 mock.patch.object(image_scraper, "download_images",
+                                   side_effect=fake_download) as m_dl:
+
+                result = image_scraper.scrape_images("receipt", count=3)
+
+                # Bing returned <3, so Wikimedia must have been consulted.
+                m_wiki.assert_called_once()
+                # Merge of 1 Bing + 3 Wikimedia URLs, deduplicated.
+                downloaded_urls = m_dl.call_args.args[0]
+                self.assertEqual(downloaded_urls, bing_urls + wiki_urls,
+                                 "Bing URLs should be kept and Wikimedia merged in")
+
+                self.assertGreaterEqual(len(result), 3,
+                                        "Fallback should yield >= 3 images total")
+        finally:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
 
 class TestTextSynthesizer(unittest.TestCase):
 
