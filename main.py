@@ -20,6 +20,7 @@ import json
 import os
 import random
 import shutil
+import sys
 from datetime import datetime, timezone
 
 import config
@@ -34,12 +35,16 @@ from assembler.assemble import assemble_final_video
 from uploader.r2_upload import upload_video, get_unique_filename
 from db.database import (
     init_db, insert_run, update_transition_url,
-    get_all_runs_ordered, get_first_run,
+    get_all_runs_ordered, get_first_run, count_runs,
 )
 
 
 # Temp directory used by image_scraper for downloads
 TEMP_DIR = os.path.join(config.OUTPUT_DIR, "temp")
+
+# Hard cap on the total number of runs. Once the database holds this many
+# entries, the project is considered complete and the pipeline exits cleanly.
+MAX_RUNS = 100
 
 
 def pick_seed_word():
@@ -132,6 +137,22 @@ def main():
     # Creates the runs table if it doesn't exist.
     # If Postgres isn't configured, this prints a message and continues.
     run_stage("Init database", init_db)
+
+    # --- Enforce the hard cap on total runs ---
+    # SELECT COUNT(*) FROM runs. If we've reached MAX_RUNS, the project is
+    # complete: print the archive notice and exit cleanly (code 0) so the
+    # GitHub Actions run is a success, not a failure.
+    #
+    # count_runs() returns None when Postgres isn't configured — in that
+    # case we can't enforce the cap, so we continue as normal.
+    run_count = count_runs()
+    if run_count is not None and run_count >= MAX_RUNS:
+        print("\n" + "=" * 50)
+        print("We Were Here, Briefly is complete.")
+        print(f"{MAX_RUNS} entries. The project is archived.")
+        print("Disable the GitHub Actions cron to stop future runs.")
+        print("=" * 50)
+        sys.exit(0)
 
     # --- Pick a seed word ---
     # Both tracks use the same word so they're thematically linked

@@ -74,6 +74,26 @@ def init_db():
         conn.close()
 
 
+def count_runs():
+    """
+    Return the total number of rows in the runs table.
+
+    Used by the pipeline to enforce a hard cap on the number of runs.
+
+    Returns an int (0 if the table is empty), or None if not configured.
+    """
+    conn = _get_connection()
+    if not conn:
+        return None
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM runs")
+            return cur.fetchone()[0]
+    finally:
+        conn.close()
+
+
 def insert_run(date, seed, sentence, video_url, style_mode):
     """
     Insert a new pipeline run into the database.

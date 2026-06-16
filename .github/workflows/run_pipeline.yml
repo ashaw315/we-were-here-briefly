@@ -41,6 +41,7 @@ jobs:
         run: python tests/run_tests.py
 
       - name: Run pipeline
+        id: pipeline
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           FAL_KEY: ${{ secrets.FAL_KEY }}
@@ -50,9 +51,33 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-        run: python main.py
+        run: |
+          # pipefail so a crash in main.py still fails the step despite the
+          # tee pipe (otherwise the exit status would be tee's, always 0).
+          set -o pipefail
+          # Tee output so we can inspect it while still streaming to the log.
+          python main.py | tee pipeline_output.txt
+          # Detect the completion sentinel printed by the run cap (main.py
+          # exits 0 in this case, so the step itself stays green).
+          if grep -q "We Were Here, Briefly is complete." pipeline_output.txt; then
+            echo "complete=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "complete=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Note project completion
+        if: steps.pipeline.outputs.complete == 'true'
+        run: |
+          {
+            echo "# 🏁 We Were Here, Briefly is complete."
+            echo ""
+            echo "100 entries. The project is archived."
+            echo ""
+            echo "**Disable the GitHub Actions cron to stop future runs.**"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Commit log backup
+        if: steps.pipeline.outputs.complete != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
