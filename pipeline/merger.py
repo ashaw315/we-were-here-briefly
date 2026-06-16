@@ -204,7 +204,7 @@ def merge(image_vibe, text_synthesis):
     print("  Merging tracks via Claude...")
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=200,
         system=style["prompt"],
         messages=[

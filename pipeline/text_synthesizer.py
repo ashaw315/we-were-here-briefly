@@ -193,7 +193,7 @@ def synthesize_text(raw_text):
         # `messages` is a list of dicts with role/content pairs —
         # similar to OpenAI's chat format if you've seen that.
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=200,
             system=system_prompt,
             messages=[

@@ -125,7 +125,7 @@ def analyze_images(image_paths):
     print(f"  Sending {loaded_count} images to Claude Vision...")
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=500,
         system=SYSTEM_PROMPT,
         messages=[
