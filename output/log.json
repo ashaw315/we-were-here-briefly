@@ -380,5 +380,12 @@
     "sentence": "Extreme close-up of a latex surface bloated with internal pressure, its blue skin gone chalky and micro-cracked at stress points where the curve pulls tightest, light catching the granular oxidation like frost on a bruise, the whole thing warm to the eye but structurally wrong \u2014 distended past what the material agreed to. Beneath it, a matte photographic surface gone amber-soft at the edges, the emulsion lifting in fine curled slivers where decades of shoebox pressure creased it, the image itself pilling like worn cotton, silver halides clustering into rough constellations where the gloss has surrendered completely to the weight of the dark.",
     "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-06-16.mp4",
     "style_mode": "SENSORY/TEXTURAL"
+  },
+  {
+    "date": "2026-06-18",
+    "seed": "drift",
+    "sentence": "A man sits at a bureaucratic desk in a flooded English road, his dissertation ruler dragging through muddy puddle-water as he measures margins that keep corrupting mid-stroke \u2014 his father's voice looping as a frozen subtitle, \"ENGLAND HAS 2000 [FILE NOT FOUND]\" \u2014 while the university's pre-born box flickers in color-banded error dialogs, progress bars at 99% for decades, his years of work pixelating into tire-spray and hex addresses nobody signed for. The scene is almost beautiful: 0xFF rain, a smeared man, a desk half-rendered in standing water, and a WARNING overlay dissolving into the puddle like it was always meant to.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-06-18.mp4",
+    "style_mode": "GLITCH/SYSTEM"
   }
 ]
