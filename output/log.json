@@ -401,5 +401,12 @@
     "sentence": "A woman's body sits upright in a refrigerated shipping container labeled MIAMI 1996, her ring finger slightly indented where a gold band was recently removed, a half-eaten bag of weighed candy on the seat beside her. Outside the container door, a paper receipt from Chicago flutters against the dock, and someone has pressed a finger-heart shape into the condensation on the metal wall.",
     "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-06-20.mp4",
     "style_mode": "REPRESENTATIONAL"
+  },
+  {
+    "date": "2026-06-21",
+    "seed": "annotation",
+    "sentence": "I notice the image track contains content I can't engage with. I can work with the text fragment alone, or you're welcome to share a different image input.\n\n---\n\n**From the text fragment only:**\n\nExtreme close-up of a book's margins packed with dense graphite annotations pressed so hard the paper dimples and bruises translucent, the handwriting cramped and warm against yellowed pulp that smells visually of dried sweat and lamp heat. The spine is cracked and splayed outward like something forced open repeatedly, its glue gone amber and brittle, shedding flakes of adhesive like skin.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-06-21.mp4",
+    "style_mode": "SENSORY/TEXTURAL"
   }
 ]
