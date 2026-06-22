@@ -408,5 +408,12 @@
     "sentence": "I notice the image track contains content I can't engage with. I can work with the text fragment alone, or you're welcome to share a different image input.\n\n---\n\n**From the text fragment only:**\n\nExtreme close-up of a book's margins packed with dense graphite annotations pressed so hard the paper dimples and bruises translucent, the handwriting cramped and warm against yellowed pulp that smells visually of dried sweat and lamp heat. The spine is cracked and splayed outward like something forced open repeatedly, its glue gone amber and brittle, shedding flakes of adhesive like skin.",
     "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-06-21.mp4",
     "style_mode": "SENSORY/TEXTURAL"
+  },
+  {
+    "date": "2026-06-22",
+    "seed": "expired",
+    "sentence": "Warm ochre and muted rust cycle through soft polygonal transitions, looping at irregular intervals that almost \u2014 but never quite \u2014 resolve into a recognizable rhythm, while a pale grid pulses faintly beneath, its lines drifting a half-step out of register each time they return. Dull amber bleeds leftward across the frame in slow, interrupted arcs, pausing mid-motion as though waiting for a signal that arrives late, then continues anyway, dimming gradually toward a gray that holds still longer than everything else.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-06-22.mp4",
+    "style_mode": "ABSTRACT"
   }
 ]
