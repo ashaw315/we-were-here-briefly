@@ -506,5 +506,12 @@
     "sentence": "Slow-rolling columns of basalt grey and brine-pale white drift laterally across the frame while neon magenta interference lines pulse at irregular intervals, brightening then failing to reflect, cycling through a rhythm that almost stabilizes before collapsing into horizontal static. Matte black rectangles accumulate at the bottom edge in stacked layers, their upper borders creased with a single diagonal fold of cooler grey that bisects the composition at the 17th unit of measure, while the remaining surface holds four faint vertical marks, two of which gradually fade to the background color and disappear.",
     "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-07-05.mp4",
     "style_mode": "ABSTRACT"
+  },
+  {
+    "date": "2026-07-06",
+    "seed": "fog",
+    "sentence": "**GENERATION PROMPT:**\n\nA fluorescent-lit corridor mid-flicker stretches between two doorways that are both simultaneously opening and closing, the walls hand-inked in flat animation cels that haven't fully registered their own colors yet, saturated hues bleeding half a centimeter outside their outlines. A figure \u2014 or the scaffolding where a figure was being constructed \u2014 moves at three-quarter speed toward the far door, carrying the weight of a scene that hasn't loaded its ending.",
+    "video_url": "https://pub-dfd09c6a5bcd43dda4ed449bb2e01d95.r2.dev/2026-07-06.mp4",
+    "style_mode": "LIMINAL"
   }
 ]
