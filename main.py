@@ -198,6 +198,8 @@ def main():
         sentence = merge_result or ""
         style_mode = None
 
+    video_generation_failed = False
+
     # --- Generate video ---
     # Check R2 for existing files with today's date and get a unique name
     base_filename = f"{today}.mp4"
@@ -247,6 +249,11 @@ def main():
             print(f"  Deleted local file: {video_path}")
     else:
         print("\n  Skipping upload/log — no video file on disk")
+        # Video generation failed (e.g. fal.ai balance exhausted, API error).
+        # Remember it so the run ends with a non-zero exit code after
+        # cleanup — otherwise the workflow stays green and nothing is
+        # generated, which went unnoticed for months.
+        video_generation_failed = True
 
     # --- Transition stages (replaces datamosh) ---
     # Build the seamless loop: a Kling O1 transition from the PREVIOUS run
@@ -301,6 +308,13 @@ def main():
 
     # --- Clean up temp files ---
     run_stage("Clean up", cleanup_temp)
+
+    if video_generation_failed:
+        print("\n" + "=" * 50)
+        print("FAILED: no video was generated today. Failing the run so the")
+        print("problem is visible. Check the 'Generate video' stage above.")
+        print("=" * 50)
+        sys.exit(1)
 
     print("\n" + "=" * 50)
     print("Done. We were here, briefly.")
